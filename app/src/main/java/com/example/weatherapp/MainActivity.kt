@@ -33,10 +33,11 @@ class MainActivity : AppCompatActivity() {
 
             override fun afterTextChanged(p0: Editable?) {
                 city = p0.toString()
+                getApiData(apiKey,city,BASE_URL)
             }
         })
 
-//        getApiData(apiKey, city, BASE_URL)
+        getApiData(apiKey, city, BASE_URL)
     }
 
     private fun getApiData(apiKey: String, city: String, baseUrl: String) {
@@ -66,11 +67,14 @@ class MainActivity : AppCompatActivity() {
                     val region = data.location.region
                     val localTime = data.location.localtime
 
+                    binding.txtCityName.text = cName
+                    binding.txtTemp.text = currentWeather
+                    binding.txtHumidity.text = humidity
+                    binding.txtVisibility.text = visibility
+                    binding.txtWindSpeed.text = wind
+                    binding.txtFeelsLike.text = feelsLike
+                    binding.txtWeatherText.text = data.current.condition.text
 
-                    println(currentWeather)
-                    println(humidity)
-                    println(visibility)
-                    println(wind)
 
                 }
             }

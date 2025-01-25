@@ -1,6 +1,8 @@
 package com.example.weatherapp
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.weatherapp.databinding.ActivityMainBinding
@@ -13,14 +15,28 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val apiKey = "9857663abe584adf93670010241402"
-    private val city = "Ahmedabad"
+    private var city = ""
     private val BASE_URL = "https://api.weatherapi.com/v1/"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        getApiData(apiKey, city, BASE_URL)
+        binding.edtGetCityName.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                city = ""
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                city += p0.toString()
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+                city = p0.toString()
+            }
+        })
+
+//        getApiData(apiKey, city, BASE_URL)
     }
 
     private fun getApiData(apiKey: String, city: String, baseUrl: String) {
@@ -43,6 +59,7 @@ class MainActivity : AppCompatActivity() {
                     val visibility = data.current.vis_km
                     val wind = data.current.wind_kph
                     val feelsLike = data.current.feelslike_c
+                    val icon = data.current.condition.icon
 
                     val cName = data.location.name
                     val country = data.location.country

@@ -18,6 +18,13 @@ data class Current(
     val humidity: String,
     val feelslike_c: String,
     val vis_km: String,
+    val condition: Condition
 )
+
+data class Condition(
+    val text: String,
+    val icon: String
+)
+
 
 //  name city, celsious, humidity, visibility, wind spedd, sun rise , sun set,feels like

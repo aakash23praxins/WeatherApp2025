@@ -263,7 +263,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/ubuntu_light"
                             android:gravity="center"
-                            android:text="Humidity"
+                            android:text="Wind Speed"
                             android:textColor="#87C1EB"
                             android:textSize="14sp" />
                     </LinearLayout>

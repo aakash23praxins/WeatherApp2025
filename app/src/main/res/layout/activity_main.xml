@@ -15,14 +15,14 @@
 
         <EditText
             android:id="@+id/edtGetCityName"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginHorizontal="@dimen/_30sdp"
             android:layout_marginTop="50dp"
             android:background="@drawable/border_round"
             android:backgroundTint="@color/white"
             android:drawableEnd="@drawable/ic_search"
-            android:ems="13"
             android:hint="Search City"
             android:padding="15dp"
             android:paddingStart="20dp"
@@ -46,6 +46,8 @@
         <ImageView
             android:id="@+id/imgIcon"
             android:layout_width="300dp"
+            android:padding="@dimen/_30sdp"
+            android:scaleType="centerInside"
             android:layout_height="300dp"
             android:layout_gravity="center"
             android:src="@drawable/cloud" />

@@ -6,6 +6,8 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.weatherapp.databinding.ActivityMainBinding
 import retrofit2.Call
 import retrofit2.Callback
@@ -16,7 +18,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val apiKey = "9857663abe584adf93670010241402"
-    private var city = ""
+    private var city = "Ahmedabad"
     private val BASE_URL = "https://api.weatherapi.com/v1/"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +47,7 @@ class MainActivity : AppCompatActivity() {
                 getApiData(apiKey,city,BASE_URL)
             }
         })
+//        setWeatherIcon("Moderate or heavy snow with thunder")
 
         getApiData(apiKey, city, BASE_URL)
     }
@@ -75,6 +78,9 @@ class MainActivity : AppCompatActivity() {
                     val country = data.location.country
                     val region = data.location.region
                     val localTime = data.location.localtime
+                    val currentWeatherText = data.current.condition.text
+
+                    setWeatherIcon(currentWeatherText)
 
                     binding.txtCityName.text = cName
                     binding.txtTemp.text = currentWeather
@@ -92,5 +98,20 @@ class MainActivity : AppCompatActivity() {
                 Log.d("FAILURE", "DATA failed ${p1.message}")
             }
         })
+    }
+
+    private fun setWeatherIcon(weatherText: String) {
+
+        val iconList = Utils.weatherIconMap
+        iconList.forEach { key, value ->
+            if (key == weatherText) {
+                Glide.with(applicationContext).applyDefaultRequestOptions(
+                    RequestOptions().placeholder(R.drawable.cloud).error(
+                        R.drawable
+                            .cloud
+                    )
+                ).load(value).into(binding.imgIcon)
+            }
+        }
     }
 }

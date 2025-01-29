@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginHorizontal="@dimen/_50sdp"
+            android:layout_marginHorizontal="@dimen/_30sdp"
             android:layout_marginTop="50dp"
             android:background="@drawable/border_round"
             android:backgroundTint="@color/white"
@@ -47,6 +47,8 @@
             android:id="@+id/imgIcon"
             android:layout_width="300dp"
             android:layout_height="300dp"
+            android:padding="@dimen/_30sdp"
+            android:scaleType="centerInside"
             android:layout_gravity="center"
             android:src="@drawable/cloud" />
 

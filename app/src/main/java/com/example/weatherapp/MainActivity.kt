@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
                 getApiData(apiKey,city,BASE_URL)
             }
         })
-//        setWeatherIcon("Moderate or heavy snow with thunder")
+
 
         getApiData(apiKey, city, BASE_URL)
     }
@@ -75,9 +75,6 @@ class MainActivity : AppCompatActivity() {
                     val icon = data.current.condition.icon
 
                     val cName = data.location.name
-                    val country = data.location.country
-                    val region = data.location.region
-                    val localTime = data.location.localtime
                     val currentWeatherText = data.current.condition.text
 
                     setWeatherIcon(currentWeatherText)

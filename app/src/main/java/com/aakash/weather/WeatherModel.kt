@@ -1,4 +1,4 @@
-package com.example.weatherapp
+package com.aakash.weather
 
 data class WeatherModel(
     val location: Location,

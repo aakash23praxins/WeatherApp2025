@@ -12,9 +12,9 @@
         android:roundIcon="@drawable/cloud"
         android:supportsRtl="true"
         android:theme="@style/Theme.WeatherApp"
-        tools:targetApi="31">
+        tools:targetApi="UPSIDE_DOWN_CAKE">
         <activity
-            android:name=".MainActivity"
+            android:name="com.aakash.weather.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

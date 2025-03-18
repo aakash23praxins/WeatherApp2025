@@ -1,4 +1,4 @@
-package com.example.weatherapp
+package com.aakash.weather
 
 import android.os.Build
 import android.os.Bundle
@@ -8,7 +8,8 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import com.example.weatherapp.databinding.ActivityMainBinding
+import com.aakash.weather.R
+import com.aakash.weather.databinding.ActivityMainBinding
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

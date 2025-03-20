@@ -1,4 +1,4 @@
-package com.aakash.weather
+package com.aakash.weather.model
 
 data class WeatherModel(
     val location: Location,

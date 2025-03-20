@@ -1,26 +1,32 @@
-package com.aakash.weather
+package com.aakash.weather.view
 
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.aakash.weather.R
+import com.aakash.weather.utils.Utils
+import com.aakash.weather.databinding.ActivityMainBinding
+import com.aakash.weather.model.WeatherModel
+import com.aakash.weather.viewmodel.WeatherViewModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import com.aakash.weather.R
-import com.aakash.weather.databinding.ActivityMainBinding
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val apiKey = "9857663abe584adf93670010241402"
     private var city = "Ahmedabad"
-    private val BASE_URL = "https://api.weatherapi.com/v1/"
+
+    private val weatherViewModel: WeatherViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -45,25 +51,21 @@ class MainActivity : AppCompatActivity() {
 
             override fun afterTextChanged(p0: Editable?) {
                 city = p0.toString()
-                getApiData(apiKey,city,BASE_URL)
+                getApiData(apiKey,city)
             }
         })
 
+        getApiData(apiKey, city)
 
-        getApiData(apiKey, city, BASE_URL)
     }
 
-    private fun getApiData(apiKey: String, city: String, baseUrl: String) {
+    private fun getApiData(apiKey: String, city: String) {
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        val apiInterface = retrofit.create(ApiService::class.java).getData(apiKey, city)
-
-        apiInterface.enqueue(object : Callback<WeatherModel?> {
-            override fun onResponse(p0: Call<WeatherModel?>, response: Response<WeatherModel?>) {
+        weatherViewModel.fetchData(apiKey, city).enqueue(object : Callback<WeatherModel> {
+            override fun onResponse(
+                p0: Call<WeatherModel?>,
+                response: Response<WeatherModel?>
+            ) {
                 if (response.isSuccessful) {
 
                     val data = response.body() as WeatherModel
@@ -92,15 +94,63 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            override fun onFailure(p0: Call<WeatherModel?>, p1: Throwable) {
+            override fun onFailure(
+                p0: Call<WeatherModel?>,
+                p1: Throwable
+            ) {
                 Log.d("FAILURE", "DATA failed ${p1.message}")
             }
+
         })
+
+
+
+//        val retrofit = Retrofit.Builder()
+//            .baseUrl(baseUrl)
+//            .addConverterFactory(GsonConverterFactory.create())
+//            .build()
+//
+//        val apiInterface = retrofit.create(ApiService::class.java).getData(apiKey, city)
+//
+//        apiInterface.enqueue(object : Callback<WeatherModel?> {
+//            override fun onResponse(p0: Call<WeatherModel?>, response: Response<WeatherModel?>) {
+//                if (response.isSuccessful) {
+//
+//                    val data = response.body() as WeatherModel
+//
+//                    val currentWeather = data.current.temp_c
+//                    val humidity = data.current.humidity
+//                    val visibility = data.current.vis_km
+//                    val wind = data.current.wind_kph
+//                    val feelsLike = data.current.feelslike_c
+//                    val icon = data.current.condition.icon
+//
+//                    val cName = data.location.name
+//                    val currentWeatherText = data.current.condition.text
+//
+//                    setWeatherIcon(currentWeatherText)
+//
+//                    binding.txtCityName.text = cName
+//                    binding.txtTemp.text = currentWeather
+//                    binding.txtHumidity.text = humidity
+//                    binding.txtVisibility.text = visibility
+//                    binding.txtWindSpeed.text = wind
+//                    binding.txtFeelsLike.text = feelsLike
+//                    binding.txtWeatherText.text = data.current.condition.text
+//
+//
+//                }
+//            }
+//
+//            override fun onFailure(p0: Call<WeatherModel?>, p1: Throwable) {
+//                Log.d("FAILURE", "DATA failed ${p1.message}")
+//            }
+//        })
     }
 
     private fun setWeatherIcon(weatherText: String) {
 
-        val iconList = Utils.weatherIconMap
+        val iconList = Utils.Companion.weatherIconMap
         iconList.forEach { key, value ->
             if (key == weatherText) {
                 Glide.with(applicationContext).applyDefaultRequestOptions(

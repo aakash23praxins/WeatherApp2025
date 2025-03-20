@@ -1,4 +1,4 @@
-package com.aakash.weather
+package com.aakash.weather.utils
 
 class Utils {
     companion object {
@@ -53,5 +53,8 @@ class Utils {
             "Patchy light snow with thunder" to "https://cdn-icons-png.freepik.com/512/1197/1197110.png?uid=R183363984&ga=GA1.1.1357463132.1737101655",
             "Moderate or heavy snow with thunder" to "https://cdn-icons-png.freepik.com/512/1197/1197110.png?uid=R183363984&ga=GA1.1.1357463132.1737101655"
         )
+
+        val BASE_URL = "https://api.weatherapi.com/v1/"
+
     }
 }

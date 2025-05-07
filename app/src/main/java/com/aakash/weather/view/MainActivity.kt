@@ -7,10 +7,12 @@ import android.text.TextWatcher
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.aakash.weather.R
-import com.aakash.weather.utils.Utils
 import com.aakash.weather.databinding.ActivityMainBinding
 import com.aakash.weather.model.WeatherModel
+import com.aakash.weather.utils.Utils
+import com.aakash.weather.view.adapter.TodayAdapter
 import com.aakash.weather.viewmodel.WeatherViewModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -26,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private var city = "Ahmedabad"
 
     private val weatherViewModel: WeatherViewModel by viewModels()
+    private lateinit var todayAdapter: TodayAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +41,12 @@ class MainActivity : AppCompatActivity() {
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = getResources().getColor(R.color.statusbarColor2);
         }
+
+        todayAdapter = TodayAdapter()
+
+        binding.todayRecyclerView.adapter = todayAdapter
+        binding.todayRecyclerView.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
 
         binding.edtGetCityName.addTextChangedListener(object : TextWatcher {

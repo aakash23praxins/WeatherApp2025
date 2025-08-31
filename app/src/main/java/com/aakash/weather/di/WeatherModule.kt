@@ -1,6 +1,7 @@
 package com.aakash.weather.di
 
-import com.aakash.weather.utils.Utils.Companion.BASE_URL
+import com.aakash.weather.remote.ApiService
+import com.aakash.weather.utils.BASE_URL
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,5 +18,10 @@ object WeatherModule {
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder().baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create()).build()
+    }
+    @Provides
+    @Singleton
+    fun provideApiService(retrofit: Retrofit): ApiService {
+        return retrofit.create(ApiService::class.java)
     }
 }

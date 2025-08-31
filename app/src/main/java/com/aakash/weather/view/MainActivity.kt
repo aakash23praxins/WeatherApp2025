@@ -1,12 +1,25 @@
 package com.aakash.weather.view
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Geocoder
+import android.location.Location
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aakash.weather.R
 import com.aakash.weather.databinding.ActivityMainBinding
@@ -16,67 +29,195 @@ import com.aakash.weather.view.adapter.TodayAdapter
 import com.aakash.weather.viewmodel.WeatherViewModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
+import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityMainBinding
     private val apiKey = "9857663abe584adf93670010241402"
-    private var city = "Ahmedabad"
+    private var city: String? = null
 
     private val weatherViewModel: WeatherViewModel by viewModels()
     private lateinit var todayAdapter: TodayAdapter
 
+    // Modern Location API
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
+    private lateinit var permissionLauncher: ActivityResultLauncher<String>
+
+    private var lat: String? = null
+    private var long: String? = null
+    private var lastFetchedCity: String? = null
+    private var searchJob: kotlinx.coroutines.Job? = null
+
+
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        registerPermissionLauncher()
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            5000L
+        ).setMinUpdateIntervalMillis(2000L).build()
+        if (isLocationEnabled()) {
+            fetchSingleLocation()
+        } else {
+            lifecycleScope.launch {
+                Snackbar.make(
+                    binding.root,
+                    "Please turn on location permission for better weather update!!",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                delay(1300)
+                Snackbar.make(
+                    binding.root,
+                    "We want to give you better weather update..",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            }
+        }
+
+
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val location: Location? = result.lastLocation
+                location?.let {
+                    lat = it.latitude.toString()
+                    long = it.longitude.toString()
+                    Log.d("WeatherApp", "Lat: $lat, Lon: $long")
+
+                    city = getCityName(it.latitude, it.longitude)
+                    city?.let { name -> getApiData(apiKey, name) }
+                }
+            }
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             window.statusBarColor =
-                getResources().getColor(R.color.statusbarColor, this.theme);
+                resources.getColor(R.color.statusbarColor, this.theme)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.statusBarColor = getResources().getColor(R.color.statusbarColor2);
+            window.statusBarColor = resources.getColor(R.color.statusbarColor2)
         }
 
         todayAdapter = TodayAdapter()
-
         binding.todayRecyclerView.adapter = todayAdapter
         binding.todayRecyclerView.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
-
         binding.edtGetCityName.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
                 city = ""
             }
 
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                city += p0.toString()
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                city += s.toString()
             }
 
-            override fun afterTextChanged(p0: Editable?) {
-                city = p0.toString()
-                getApiData(apiKey,city)
+            override fun afterTextChanged(s: Editable?) {
+                val cityName = s.toString()
+                searchJob?.cancel()
+                searchJob = lifecycleScope.launch {
+                    delay(800)
+                    if (cityName.isNotEmpty() && cityName != lastFetchedCity) {
+                        lastFetchedCity = cityName
+                        getApiData(apiKey, cityName)
+                    }
+                }
             }
         })
+    }
 
-        getApiData(apiKey, city)
+    private fun registerPermissionLauncher() {
+        permissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+                if (it) {
+                    fetchSingleLocation()
+                } else {
+                    lifecycleScope.launch {
+                        Snackbar.make(
+                            binding.root,
+                            "Please turn on location permission for better weather update!!",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                        delay(1300)
+                        Snackbar.make(
+                            binding.root,
+                            "We want to give you better weather update..",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+    }
 
+    @Suppress("MissingPermission")
+    private fun fetchSingleLocation() {
+        fusedLocationClient.getCurrentLocation(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            null
+        ).addOnSuccessListener { location: Location? ->
+            if (location != null) {
+                handleLocation(location)
+            } else {
+                fusedLocationClient.lastLocation.addOnSuccessListener { lastLoc: Location? ->
+                    if (lastLoc != null) {
+                        handleLocation(lastLoc)
+                    } else {
+                        Log.e("WeatherApp", "Still no location available")
+                    }
+                }
+            }
+        }
+    }
+
+
+    private fun handleLocation(location: Location) {
+        lat = location.latitude.toString()
+        long = location.longitude.toString()
+        Log.d("WeatherApp", "Lat: $lat, Lon: $long")
+
+        val newCity = getCityName(location.latitude, location.longitude)
+        if (newCity != null && newCity != lastFetchedCity) {
+            lastFetchedCity = newCity
+            getApiData(apiKey, newCity)
+        }
+    }
+
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     private fun getApiData(apiKey: String, city: String) {
-
         weatherViewModel.fetchData(apiKey, city).enqueue(object : Callback<WeatherModel> {
             override fun onResponse(
-                p0: Call<WeatherModel?>,
+                call: Call<WeatherModel?>,
                 response: Response<WeatherModel?>
             ) {
                 if (response.isSuccessful) {
-
                     val data = response.body() as WeatherModel
 
                     val currentWeather = data.current.temp_c
@@ -97,78 +238,72 @@ class MainActivity : AppCompatActivity() {
                     binding.txtVisibility.text = visibility
                     binding.txtWindSpeed.text = wind
                     binding.txtFeelsLike.text = feelsLike
-                    binding.txtWeatherText.text = data.current.condition.text
+                    binding.txtWeatherText.text = currentWeatherText
 
-
+                    binding.edtGetCityName.setText(city)
                 }
             }
 
-            override fun onFailure(
-                p0: Call<WeatherModel?>,
-                p1: Throwable
-            ) {
-                Log.d("FAILURE", "DATA failed ${p1.message}")
+            override fun onFailure(call: Call<WeatherModel?>, t: Throwable) {
+                Log.d("FAILURE", "DATA failed ${t.message}")
             }
-
         })
 
-
-
-//        val retrofit = Retrofit.Builder()
-//            .baseUrl(baseUrl)
-//            .addConverterFactory(GsonConverterFactory.create())
-//            .build()
-//
-//        val apiInterface = retrofit.create(ApiService::class.java).getData(apiKey, city)
-//
-//        apiInterface.enqueue(object : Callback<WeatherModel?> {
-//            override fun onResponse(p0: Call<WeatherModel?>, response: Response<WeatherModel?>) {
-//                if (response.isSuccessful) {
-//
-//                    val data = response.body() as WeatherModel
-//
-//                    val currentWeather = data.current.temp_c
-//                    val humidity = data.current.humidity
-//                    val visibility = data.current.vis_km
-//                    val wind = data.current.wind_kph
-//                    val feelsLike = data.current.feelslike_c
-//                    val icon = data.current.condition.icon
-//
-//                    val cName = data.location.name
-//                    val currentWeatherText = data.current.condition.text
-//
-//                    setWeatherIcon(currentWeatherText)
-//
-//                    binding.txtCityName.text = cName
-//                    binding.txtTemp.text = currentWeather
-//                    binding.txtHumidity.text = humidity
-//                    binding.txtVisibility.text = visibility
-//                    binding.txtWindSpeed.text = wind
-//                    binding.txtFeelsLike.text = feelsLike
-//                    binding.txtWeatherText.text = data.current.condition.text
-//
-//
-//                }
-//            }
-//
-//            override fun onFailure(p0: Call<WeatherModel?>, p1: Throwable) {
-//                Log.d("FAILURE", "DATA failed ${p1.message}")
-//            }
-//        })
+        weatherViewModel.fetchAstroData(
+            key = apiKey,
+            q = city,
+            day = 3.toString()
+        ).observe(this) { weatherData ->
+            weatherData?.let {
+                Log.d("DATA Activity", "data response $it")
+            }
+        }
     }
 
     private fun setWeatherIcon(weatherText: String) {
-
-        val iconList = Utils.Companion.weatherIconMap
+        val iconList = Utils.weatherIconMap
         iconList.forEach { key, value ->
             if (key == weatherText) {
                 Glide.with(applicationContext).applyDefaultRequestOptions(
-                    RequestOptions().placeholder(R.drawable.cloud).error(
-                        R.drawable
-                            .cloud
-                    )
+                    RequestOptions().placeholder(R.drawable.cloud).error(R.drawable.cloud)
                 ).load(value).into(binding.imgIcon)
             }
         }
     }
+
+    private fun getCityName(latitude: Double, longitude: Double): String? {
+        return try {
+            val geocoder = Geocoder(this, Locale.getDefault())
+            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+            if (!addresses.isNullOrEmpty()) {
+                addresses[0].locality ?: addresses[0].subAdminArea
+            } else null
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            fetchSingleLocation()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopLocationUpdates()
+    }
+
+    private fun isLocationEnabled(): Boolean {
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
+
 }

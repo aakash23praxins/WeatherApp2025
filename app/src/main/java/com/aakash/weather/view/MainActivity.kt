@@ -23,7 +23,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aakash.weather.R
 import com.aakash.weather.databinding.ActivityMainBinding
-import com.aakash.weather.model.WeatherModel
 import com.aakash.weather.utils.Utils
 import com.aakash.weather.view.adapter.TodayAdapter
 import com.aakash.weather.viewmodel.WeatherViewModel
@@ -39,10 +38,9 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.IOException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @AndroidEntryPoint
@@ -122,7 +120,7 @@ class MainActivity : AppCompatActivity() {
             window.statusBarColor = resources.getColor(R.color.statusbarColor2)
         }
 
-        todayAdapter = TodayAdapter()
+        todayAdapter = TodayAdapter(this)
         binding.todayRecyclerView.adapter = todayAdapter
         binding.todayRecyclerView.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
@@ -212,57 +210,105 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getApiData(apiKey: String, city: String) {
-        weatherViewModel.fetchData(apiKey, city).enqueue(object : Callback<WeatherModel> {
-            override fun onResponse(
-                call: Call<WeatherModel?>,
-                response: Response<WeatherModel?>
-            ) {
-                if (response.isSuccessful) {
-                    val data = response.body() as WeatherModel
-
-                    val currentWeather = data.current.temp_c
-                    val humidity = data.current.humidity
-                    val visibility = data.current.vis_km
-                    val wind = data.current.wind_kph
-                    val feelsLike = data.current.feelslike_c
-                    val icon = data.current.condition.icon
-
-                    val cName = data.location.name
-                    val currentWeatherText = data.current.condition.text
-
-                    setWeatherIcon(currentWeatherText)
-
-                    binding.txtCityName.text = cName
-                    binding.txtTemp.text = currentWeather
-                    binding.txtHumidity.text = humidity
-                    binding.txtVisibility.text = visibility
-                    binding.txtWindSpeed.text = wind
-                    binding.txtFeelsLike.text = feelsLike
-                    binding.txtWeatherText.text = currentWeatherText
-
-                    binding.edtGetCityName.setText(city)
-                }
-            }
-
-            override fun onFailure(call: Call<WeatherModel?>, t: Throwable) {
-                Log.d("FAILURE", "DATA failed ${t.message}")
-            }
-        })
+//        weatherViewModel.fetchData(apiKey, city).enqueue(object : Callback<WeatherModel> {
+//            override fun onResponse(
+//                call: Call<WeatherModel?>,
+//                response: Response<WeatherModel?>
+//            ) {
+//                if (response.isSuccessful) {
+//                    val data = response.body() as WeatherModel
+//
+//                    val currentWeather = data.current.temp_c
+//                    val humidity = data.current.humidity
+//                    val visibility = data.current.vis_km
+//                    val wind = data.current.wind_kph
+//                    val feelsLike = data.current.feelslike_c
+//                    val icon = data.current.condition.icon
+//
+//                    val cName = data.location.name
+//                    val currentWeatherText = data.current.condition.text
+//
+//                    setWeatherIcon(currentWeatherText)
+//
+//                    binding.txtCityName.text = cName
+//                    binding.txtTemp.text = currentWeather
+//                    binding.txtHumidity.text = humidity
+//                    binding.txtVisibility.text = visibility
+//                    binding.txtWindSpeed.text = wind
+//                    binding.txtFeelsLike.text = feelsLike
+//                    binding.txtWeatherText.text = currentWeatherText
+//
+//                    binding.edtGetCityName.setText(city)
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<WeatherModel?>, t: Throwable) {
+//                Log.d("FAILURE", "DATA failed ${t.message}")
+//            }
+//        })
 
         weatherViewModel.fetchAstroData(
-            key = apiKey,
-            q = city,
-            day = 3.toString()
+            key = apiKey, q = city, day = 1.toString()
         ).observe(this) { weatherData ->
             weatherData?.let {
                 Log.d("DATA Activity", "data response $it")
+
+                val data = it
+                todayAdapter.setDataList(hourList = data.forecast.forecastday[0].hour)
+                val currentWeather = data.current.temp_c
+                val humidity = data.current.humidity
+                val visibility = data.current.vis_km
+                val wind = data.current.wind_kph
+                val feelsLike = data.current.feelslike_c
+                val icon = data.current.condition.icon
+
+                val sunRise = data.forecast.forecastday[0].astro.sunrise
+                val sunSet = data.forecast.forecastday[0].astro.sunset
+
+                val cName = data.location.name
+                val currentWeatherText = data.current.condition.text
+                val dateTime = data.location.localtime.split(" ")
+                val date = dateTime[0]
+                val time = dateTime[1]
+
+                val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
+                val outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
+                val parsedDate = LocalDate.parse(date, inputFormatter)
+
+                binding.txtDate.text = parsedDate.format(outputFormatter)
+                binding.txtTime.text = time
+
+                val hour = time.split(":")
+
+                println("the hour is $hour")
+
+                todayAdapter.scrollToTime(
+                    binding.todayRecyclerView,
+                    hour[0].toInt()
+                )
+
+                setWeatherIcon(currentWeatherText)
+
+                binding.txtCityName.text = cName
+                binding.txtTemp.text = currentWeather
+                binding.txtHumidity.text = humidity
+                binding.txtVisibility.text = visibility
+                binding.txtWindSpeed.text = wind
+                binding.txtFeelsLike.text = feelsLike
+                binding.txtWeatherText.text = currentWeatherText
+
+                binding.txtSunRise.text = sunRise
+                binding.txtSunSet.text = sunSet
+
+                binding.edtGetCityName.setText(city)
+                binding.txtCityName.text = city
             }
         }
     }
 
     private fun setWeatherIcon(weatherText: String) {
         val iconList = Utils.weatherIconMap
-        iconList.forEach { key, value ->
+        iconList.forEach { (key, value) ->
             if (key == weatherText) {
                 Glide.with(applicationContext).applyDefaultRequestOptions(
                     RequestOptions().placeholder(R.drawable.cloud).error(R.drawable.cloud)

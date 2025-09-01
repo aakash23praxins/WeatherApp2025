@@ -160,6 +160,7 @@ data class Hour(
     @SerializedName("gust_kph")
     val gustKph: Double,
     val uv: Double,
+    val condition: Condition
 )
 
 

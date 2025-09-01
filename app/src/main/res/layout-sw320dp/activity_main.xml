@@ -13,6 +13,71 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:fontFamily="@font/ubuntu_bold"
+                    android:text="Date"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_17sdp" />
+
+                <TextView
+                    android:id="@+id/txtDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:fontFamily="@font/ubuntu_light"
+                    android:text="2025-09-01"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_20sdp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:fontFamily="@font/ubuntu_bold"
+                    android:gravity="end"
+                    android:text="Latest Time"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_17sdp" />
+
+                <TextView
+                    android:id="@+id/txtTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:fontFamily="@font/ubuntu_light"
+                    android:gravity="end"
+                    android:text="20:56"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_20sdp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+
         <EditText
             android:id="@+id/edtGetCityName"
             android:layout_width="match_parent"
@@ -27,7 +92,6 @@
             android:padding="15dp"
             android:paddingStart="20dp"
             android:singleLine="true"
-            android:text="Ahmedabad"
             android:textColor="@color/black"
             android:textColorHint="#918A8A"
             android:textSize="20sp" />
@@ -39,7 +103,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/ubuntu_bold"
             android:gravity="center"
-            android:text="Ahmedabad"
+            android:text=""
             android:textColor="@color/white"
             android:textSize="@dimen/_40sdp" />
 
@@ -313,6 +377,7 @@
                             android:src="@drawable/sunrise" />
 
                         <TextView
+                            android:id="@+id/txtSunRise"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/ubuntu_light"
@@ -356,6 +421,7 @@
                             android:src="@drawable/sunset" />
 
                         <TextView
+                            android:id="@+id/txtSunSet"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/ubuntu_light"

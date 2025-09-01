@@ -18,6 +18,7 @@
             android:padding="@dimen/_20sdp">
 
             <TextView
+                android:id="@+id/txtHour"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_5sdp"
@@ -28,13 +29,14 @@
                 android:textSize="@dimen/_15sdp" />
 
             <ImageView
-                android:id="@+id/imageView2"
+                android:id="@+id/imgIcon"
                 android:layout_width="@dimen/_40sdp"
                 android:layout_height="@dimen/_40sdp"
                 android:layout_marginVertical="@dimen/_5sdp"
                 android:src="@drawable/cloud" />
 
             <TextView
+                android:id="@+id/txtTemp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/_5sdp"

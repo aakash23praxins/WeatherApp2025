@@ -59,7 +59,7 @@
                     android:layout_marginEnd="@dimen/_10sdp"
                     android:fontFamily="@font/ubuntu_bold"
                     android:gravity="end"
-                    android:text="Latest Time"
+                    android:text="Time"
                     android:textColor="@color/white"
                     android:textSize="@dimen/_17sdp" />
 

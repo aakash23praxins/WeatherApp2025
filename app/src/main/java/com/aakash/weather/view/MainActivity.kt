@@ -23,6 +23,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aakash.weather.R
 import com.aakash.weather.databinding.ActivityMainBinding
+import com.aakash.weather.model.DeviceInfo
+import com.aakash.weather.repository.PreferenceRepository
+import com.aakash.weather.utils.NetworkUtils
 import com.aakash.weather.utils.Utils
 import com.aakash.weather.view.adapter.TodayAdapter
 import com.aakash.weather.viewmodel.WeatherViewModel
@@ -42,6 +45,8 @@ import java.io.IOException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.UUID
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -59,6 +64,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationCallback: LocationCallback
     private lateinit var permissionLauncher: ActivityResultLauncher<String>
 
+    @Inject
+    lateinit var preferenceRepository: PreferenceRepository
+
     private var lat: String? = null
     private var long: String? = null
     private var lastFetchedCity: String? = null
@@ -71,12 +79,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        checkIsFirstTime()
         registerPermissionLauncher()
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            5000L
+            Priority.PRIORITY_HIGH_ACCURACY, 5000L
         ).setMinUpdateIntervalMillis(2000L).build()
         if (isLocationEnabled()) {
             fetchSingleLocation()
@@ -114,8 +122,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            window.statusBarColor =
-                resources.getColor(R.color.statusbarColor, this.theme)
+            window.statusBarColor = resources.getColor(R.color.statusbarColor, this.theme)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = resources.getColor(R.color.statusbarColor2)
         }
@@ -148,6 +155,7 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+
     private fun registerPermissionLauncher() {
         permissionLauncher =
             registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -174,8 +182,7 @@ class MainActivity : AppCompatActivity() {
     @Suppress("MissingPermission")
     private fun fetchSingleLocation() {
         fusedLocationClient.getCurrentLocation(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            null
+            Priority.PRIORITY_HIGH_ACCURACY, null
         ).addOnSuccessListener { location: Location? ->
             if (location != null) {
                 handleLocation(location)
@@ -283,8 +290,7 @@ class MainActivity : AppCompatActivity() {
                 println("the hour is $hour")
 
                 todayAdapter.scrollToTime(
-                    binding.todayRecyclerView,
-                    hour[0].toInt()
+                    binding.todayRecyclerView, hour[0].toInt()
                 )
 
                 setWeatherIcon(currentWeatherText)
@@ -333,8 +339,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                this, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             fetchSingleLocation()
@@ -348,8 +353,55 @@ class MainActivity : AppCompatActivity() {
 
     private fun isLocationEnabled(): Boolean {
         val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(
+            LocationManager.NETWORK_PROVIDER
+        )
     }
+
+    private fun checkIsFirstTime() {
+        val isFirsTimeFlag = preferenceRepository.getIsFirstTime()
+        Log.d("isFirsTimeFlag", "isFirsTimeFlag---> $isFirsTimeFlag")
+        if (!isFirsTimeFlag) {
+            val deviceInfo = getDeviceData()
+            Log.d("DeviceInfo", "Device Info $deviceInfo")
+            preferenceRepository.setIsFirstTime(true)
+        }
+
+
+        val deviceInfo = getDeviceData()
+        Log.d("DeviceInfo", "Device Info $deviceInfo")
+    }
+
+    private fun getDeviceData(): DeviceInfo {
+        val manufacturer = Build.MANUFACTURER
+        val model = Build.MODEL
+        val brand = Build.BRAND
+        val androidVersion = Build.VERSION.RELEASE
+        val sdkInt = Build.VERSION.SDK_INT
+        val deviceName = "$manufacturer $model"
+
+        val ipAddress = NetworkUtils.getIpAddress()
+        val networkType = NetworkUtils.getNetworkType(this)
+        val carrierName = NetworkUtils.getCarrierName(this)
+
+        val packageInfo = this.packageManager.getPackageInfo(this.packageName, 0)
+        val appVersion = packageInfo.versionName ?: "1.0"
+
+        return DeviceInfo(
+            deviceId = UUID.randomUUID().toString(),
+            manufacturer = manufacturer,
+            model = model,
+            brand = brand,
+            androidVersion = androidVersion,
+            sdkInt = sdkInt,
+            deviceName = deviceName,
+            ipAddress = ipAddress,
+            networkType = networkType,
+            carrierName = carrierName,
+            appVersion = appVersion,
+            firstOpenTime = System.currentTimeMillis()
+        )
+    }
+
 
 }

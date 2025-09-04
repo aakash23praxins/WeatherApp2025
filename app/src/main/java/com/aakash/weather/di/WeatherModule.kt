@@ -4,6 +4,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.aakash.weather.remote.ApiService
 import com.aakash.weather.utils.BASE_URL
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,5 +36,11 @@ object WeatherModule {
     @Singleton
     fun provideSharedPreference(@ApplicationContext context: Context): SharedPreferences {
         return context.getSharedPreferences("sky_pulse", Context.MODE_PRIVATE)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebase(): FirebaseFirestore {
+        return Firebase.firestore
     }
 }

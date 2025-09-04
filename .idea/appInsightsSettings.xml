@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.aakash.weather" />
+                  <option name="mobileSdkAppId" value="1:443021631616:android:183ccc8afa6505e14ec665" />
+                  <option name="projectId" value="skypulse-e5f6a" />
+                  <option name="projectNumber" value="443021631616" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

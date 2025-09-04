@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "443021631616",
+    "project_id": "skypulse-e5f6a",
+    "storage_bucket": "skypulse-e5f6a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443021631616:android:183ccc8afa6505e14ec665",
+        "android_client_info": {
+          "package_name": "com.aakash.weather"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsV6TXjTIzJJC7-96SbHQDNrYGEmPlxL4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

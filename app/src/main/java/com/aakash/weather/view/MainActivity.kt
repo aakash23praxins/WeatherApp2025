@@ -38,6 +38,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -66,6 +67,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var preferenceRepository: PreferenceRepository
+
+    @Inject
+    lateinit var firebaseFireStore: FirebaseFirestore
 
     private var lat: String? = null
     private var long: String? = null
@@ -370,6 +374,27 @@ class MainActivity : AppCompatActivity() {
 
         val deviceInfo = getDeviceData()
         Log.d("DeviceInfo", "Device Info $deviceInfo")
+
+
+        val user = hashMapOf(
+            "first" to "Aakash",
+            "last" to "Panchal",
+            "born" to 2392
+        )
+
+        firebaseFireStore.collection("users")
+            .add(user)
+            .addOnSuccessListener { documentReference ->
+                Log.d(
+                    "FIREBASE FIRESTORE ",
+                    "DocumentSnapshot added with ID: ${documentReference.id}"
+                )
+            }
+            .addOnFailureListener { e ->
+                Log.w("FIREBASE FIRESTORE ", "Error adding document", e)
+            }
+
+
     }
 
     private fun getDeviceData(): DeviceInfo {

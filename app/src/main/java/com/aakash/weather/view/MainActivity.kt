@@ -367,33 +367,41 @@ class MainActivity : AppCompatActivity() {
         Log.d("isFirsTimeFlag", "isFirsTimeFlag---> $isFirsTimeFlag")
         if (!isFirsTimeFlag) {
             val deviceInfo = getDeviceData()
-            Log.d("DeviceInfo", "Device Info $deviceInfo")
+            setFirebaseStoreData(deviceInfo)
             preferenceRepository.setIsFirstTime(true)
         }
 
 
-        val deviceInfo = getDeviceData()
-        Log.d("DeviceInfo", "Device Info $deviceInfo")
+    }
 
-
-        val user = hashMapOf(
-            "first" to "Aakash",
-            "last" to "Panchal",
-            "born" to 2392
+    private fun setFirebaseStoreData(deviceInfo: DeviceInfo) {
+        val devices = mapOf(
+            "deviceId" to deviceInfo.deviceId,
+            "manufacturer" to deviceInfo.manufacturer,
+            "model" to deviceInfo.model,
+            "brand" to deviceInfo.brand,
+            "androidVersion" to deviceInfo.androidVersion,
+            "sdkInt" to deviceInfo.sdkInt.toString(),
+            "deviceName" to deviceInfo.deviceName,
+            "ipAddress" to deviceInfo.ipAddress,
+            "networkType" to deviceInfo.networkType,
+            "carrierName" to deviceInfo.carrierName.toString(),
+            "appVersion" to deviceInfo.appVersion,
+            "firstOpenTime" to deviceInfo.firstOpenTime.toString()
         )
 
-        firebaseFireStore.collection("users")
-            .add(user)
+
+        firebaseFireStore.collection("users_devices")
+            .add(devices)
             .addOnSuccessListener { documentReference ->
                 Log.d(
-                    "FIREBASE FIRESTORE ",
+                    "FIREBASE Success",
                     "DocumentSnapshot added with ID: ${documentReference.id}"
                 )
             }
             .addOnFailureListener { e ->
-                Log.w("FIREBASE FIRESTORE ", "Error adding document", e)
+                Log.e("FIREBASE Failure ", "Error adding document, ${e.message.toString()}")
             }
-
 
     }
 

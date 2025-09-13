@@ -38,8 +38,10 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.BuildConfig
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -53,8 +55,8 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val apiKey = "9857663abe584adf93670010241402"
     private var city: String? = null
+    private var apiKey = com.aakash.weather.BuildConfig.WEATHER_API_KEY
 
     private val weatherViewModel: WeatherViewModel by viewModels()
     private lateinit var todayAdapter: TodayAdapter
@@ -74,7 +76,7 @@ class MainActivity : AppCompatActivity() {
     private var lat: String? = null
     private var long: String? = null
     private var lastFetchedCity: String? = null
-    private var searchJob: kotlinx.coroutines.Job? = null
+    private var searchJob: Job? = null
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -356,7 +358,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isLocationEnabled(): Boolean {
-        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val lm = getSystemService(LOCATION_SERVICE) as LocationManager
         return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(
             LocationManager.NETWORK_PROVIDER
         )
